@@ -65,8 +65,8 @@ namespace csGB
             MMU._if = 0;
 
             MMU._carttype = 0;
-            MMU._mbc[0] = { };
-            MMU._mbc[1] = { rombank: 0, rambank: 0, ramon: 0, mode: 0};
+            MMU._mbc[0] = new MBC();
+            MMU._mbc[1] = new MBC() { rombank = 0, rambank = 0, ramon = 0, mode = 0 };
             MMU._romoffs = 0x4000;
             MMU._ramoffs = 0;
 
@@ -75,7 +75,6 @@ namespace csGB
 
         public static void load(string file)
         {
-            
             MMU._rom = System.IO.File.ReadAllBytes(file);
             MMU._carttype = MMU._rom[0x0147];
         
@@ -225,7 +224,7 @@ namespace csGB
                         case 1:
                             MMU._mbc[1].rombank &= 0x60;
                             bval &= 0x1F;
-                            if (!bval) bval = 1;
+                            if (bval == 0) bval = 1;
                             MMU._mbc[1].rombank |= bval;
                             MMU._romoffs = MMU._mbc[1].rombank * 0x4000;
                             break;
@@ -239,7 +238,7 @@ namespace csGB
                     switch (MMU._carttype)
                     {
                         case 1:
-                            if (MMU._mbc[1].mode)
+                            if (MMU._mbc[1].mode != 0)
                             {
                                 MMU._mbc[1].rambank = (bval & 3);
                                 MMU._ramoffs = MMU._mbc[1].rambank * 0x2000;
@@ -250,6 +249,7 @@ namespace csGB
                                 MMU._mbc[1].rombank |= ((bval & 3) << 5);
                                 MMU._romoffs = MMU._mbc[1].rombank * 0x4000;
                             }
+                            break;
                     }
                     break;
 

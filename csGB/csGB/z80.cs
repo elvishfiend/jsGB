@@ -41,6 +41,7 @@ namespace csGB
 		public static class _clock
 		{
 			public static int m = 0;
+            public static int t = 0;
 		}
 
 		public static bool _halt = false;
