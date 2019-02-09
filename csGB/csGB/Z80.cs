@@ -14,9 +14,12 @@ using System.Threading.Tasks;
 
 namespace csGB
 {
-    public static partial class cpu
+    public static partial class Z80
     {
-        public struct clock { public int m; }
+        public struct clock {
+            public int m;
+            public int t;
+        }
         public static clock _clock = new clock();
 
         public static int _halt = 0;
@@ -24,21 +27,21 @@ namespace csGB
 
         public static void reset()
         {
-            cpu._r.a = 0; cpu._r.b = 0; cpu._r.c = 0; cpu._r.d = 0; cpu._r.e = 0; cpu._r.h = 0; cpu._r.l = 0; cpu._r.f = 0;
-            cpu._r.sp = 0; cpu._r.pc = 0; cpu._r.i = 0; cpu._r.r = 0;
-            cpu._r.m = 0;
-            cpu._halt = 0; cpu._stop = 0;
-            cpu._clock.m = 0;
-            cpu._r.ime = 1;
+            Z80._r.a = 0; Z80._r.b = 0; Z80._r.c = 0; Z80._r.d = 0; Z80._r.e = 0; Z80._r.h = 0; Z80._r.l = 0; Z80._r.f = 0;
+            Z80._r.sp = 0; Z80._r.pc = 0; Z80._r.i = 0; Z80._r.r = 0;
+            Z80._r.m = 0;
+            Z80._halt = 0; Z80._stop = 0;
+            Z80._clock.m = 0;
+            Z80._r.ime = 1;
             LOG.@out("cpu", "Reset.");
         }
 
         public static void exec()
         {
-            cpu._r.r = (cpu._r.r + 1) & 127;
-            cpu._map[MMU.rb(cpu._r.pc++)]();
-            cpu._r.pc &= 65535;
-            cpu._clock.m += cpu._r.m;
+            Z80._r.r = (Z80._r.r + 1) & 127;
+            Z80._map[MMU.rb(Z80._r.pc++)]();
+            Z80._r.pc &= 65535;
+            Z80._clock.m += Z80._r.m;
         }
     }
 };

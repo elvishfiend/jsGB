@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace csGB
 {
-    public static partial class cpu
+    public static partial class Z80
     {
         public static resetvector _rsv = new resetvector();
 

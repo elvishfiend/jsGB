@@ -43,15 +43,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="cpu.cs"/>
+    <Compile Include="Z80.cs" />
     <Compile Include="cpu.ops.cs">
-      <DependentUpon>cpu.cs</DependentUpon>
+      <DependentUpon>Z80.cs</DependentUpon>
     </Compile>
     <Compile Include="cpu.registers.cs">
-      <DependentUpon>cpu.cs</DependentUpon>
+      <DependentUpon>Z80.cs</DependentUpon>
     </Compile>
     <Compile Include="cpu.resetvector.cs">
-      <DependentUpon>cpu.cs</DependentUpon>
+      <DependentUpon>Z80.cs</DependentUpon>
     </Compile>
     <Compile Include="Display.cs">
       <SubType>Form</SubType>
@@ -72,9 +72,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Roms\ttt.gb">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

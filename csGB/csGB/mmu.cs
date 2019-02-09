@@ -346,6 +346,6 @@ namespace csGB
         }
 
         public static void ww(int addr, int val) { MMU.wb(addr, val & 255); MMU.wb(addr + 1, val >> 8); }
-};
+    };
 
 }

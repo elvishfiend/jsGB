@@ -68,7 +68,7 @@ namespace csGB
         {
             if (Z80._r.ime != 0 && MMU._ie != 0 && MMU._if != 0)
             {
-                Z80._halt = false; Z80._r.ime = 0;
+                Z80._halt = 0; Z80._r.ime = 0;
 
                 if (((MMU._ie & 1) != 0) && ((MMU._if & 1) != 0))
                 {
@@ -77,7 +77,7 @@ namespace csGB
             }
             else
             {
-                if (Z80._halt) { Z80._r.m = 1; }
+                if (Z80._halt == 1) { Z80._r.m = 1; }
                 else
                 {
                     Z80._r.r = (Z80._r.r + 1) & 127;
@@ -87,7 +87,7 @@ namespace csGB
             }
             Z80._clock.m += Z80._r.m; Z80._clock.t += (Z80._r.m * 4);
             GPU.checkline();
-            if (Z80._stop)
+            if (Z80._stop != 0)
             {
                 pause();
             }
@@ -96,7 +96,7 @@ namespace csGB
 
         public static void run()
         {
-            Z80._stop = false;
+            Z80._stop = 0;
             timer.Start();// (jsGB.frame, 1);
             //document.getElementById('op_run').innerHTML = 'Pause';
             //document.getElementById('op_run').onclick = jsGB.pause;
@@ -109,7 +109,7 @@ namespace csGB
             //var t0 = new Date();
             do
             {
-                if (Z80._halt) Z80._r.m = 1;
+                if (Z80._halt != 0) Z80._r.m = 1;
                 else
                 {
                     //  Z80._r.r = (Z80._r.r+1) & 127;
@@ -118,7 +118,7 @@ namespace csGB
                 }
                 if (Z80._r.ime != 0 && MMU._ie != 0 && MMU._if != 0)
                 {
-                    Z80._halt = false; Z80._r.ime = 0;
+                    Z80._halt = 0; Z80._r.ime = 0;
                     var ifired = MMU._ie & MMU._if;
                     if ((ifired & 1) != 0) { MMU._if &= 0xFE; Z80._ops.RST40(); }
                     else if ((ifired & 2) != 0) { MMU._if &= 0xFD; Z80._ops.RST48(); }
@@ -144,7 +144,7 @@ namespace csGB
         public static void pause()
         {
             timer.Stop();
-            Z80._stop = true;
+            Z80._stop = 1;
             //jsGB.dbgupdate();
 
             //document.getElementById('op_run').innerHTML = 'Run';

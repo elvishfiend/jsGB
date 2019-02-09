@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace csGB
 {
-    public static partial class cpu
+    public static partial class Z80
     {
         public static register _r = new register();
 

@@ -132,7 +132,7 @@ namespace csGB
 
         public static void checkline()
         {
-            GPU._modeclocks += cpu._r.m;
+            GPU._modeclocks += Z80._r.m;
             switch (GPU._linemode)
             {
                 // In hblank
