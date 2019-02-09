@@ -43,6 +43,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="cpu.cs"/>
+    <Compile Include="cpu.ops.cs">
+      <DependentUpon>cpu.cs</DependentUpon>
+    </Compile>
+    <Compile Include="cpu.registers.cs">
+      <DependentUpon>cpu.cs</DependentUpon>
+    </Compile>
+    <Compile Include="cpu.resetvector.cs">
+      <DependentUpon>cpu.cs</DependentUpon>
+    </Compile>
     <Compile Include="Display.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -55,7 +65,6 @@
     <Compile Include="mmu.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="timer.cs" />
-    <Compile Include="z80.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Display.resx">
