@@ -572,7 +572,7 @@ namespace csGB
             public static void CALLCnn() { Z80._r.m = 3; if ((Z80._r.f & 0x10) == 0x10) { Z80._r.sp -= 2; MMU.ww(Z80._r.sp, Z80._r.pc + 2); Z80._r.pc = MMU.rw(Z80._r.pc); Z80._r.m += 2; } else Z80._r.pc += 2; }
 
             public static void RET() { Z80._r.pc = MMU.rw(Z80._r.sp); Z80._r.sp += 2; Z80._r.m = 3; }
-            public static void RETI() { Z80._r.ime = 1; Z80._ops.rrs(); Z80._r.pc = MMU.rw(Z80._r.sp); Z80._r.sp += 2; Z80._r.m = 3; }
+            public static void RETI() { Z80._r.ime = true; Z80._ops.rrs(); Z80._r.pc = MMU.rw(Z80._r.sp); Z80._r.sp += 2; Z80._r.m = 3; }
             public static void RETNZ() { Z80._r.m = 1; if ((Z80._r.f & 0x80) == 0x00) { Z80._r.pc = MMU.rw(Z80._r.sp); Z80._r.sp += 2; Z80._r.m += 2; } }
             public static void RETZ() { Z80._r.m = 1; if ((Z80._r.f & 0x80) == 0x80) { Z80._r.pc = MMU.rw(Z80._r.sp); Z80._r.sp += 2; Z80._r.m += 2; } }
             public static void RETNC() { Z80._r.m = 1; if ((Z80._r.f & 0x10) == 0x00) { Z80._r.pc = MMU.rw(Z80._r.sp); Z80._r.sp += 2; Z80._r.m += 2; } }
@@ -595,8 +595,8 @@ namespace csGB
             public static void NOP() { Z80._r.m = 1; }
             public static void HALT() { Z80._halt = 1; Z80._r.m = 1; }
 
-            public static void DI() { Z80._r.ime = 0; Z80._r.m = 1; }
-            public static void EI() { Z80._r.ime = 1; Z80._r.m = 1; }
+            public static void DI() { Z80._r.ime = false; Z80._r.m = 1; }
+            public static void EI() { Z80._r.ime = true; Z80._r.m = 1; }
 
             /*--- Helper functions ---*/
             public static void rsv()
@@ -618,7 +618,7 @@ namespace csGB
             public static void MAPcb()
             {
                 var i = MMU.rb(Z80._r.pc); Z80._r.pc++;
-                Z80._r.pc &= 65535;
+                // Z80._r.pc &= 65535; //handled in PC setter
                 if (Z80._cbmap[i] != null) Z80._cbmap[i]();
                 else Console.WriteLine(i);
             }

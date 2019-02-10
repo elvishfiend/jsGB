@@ -66,9 +66,9 @@ namespace csGB
 
         public static void step()
         {
-            if (Z80._r.ime != 0 && MMU._ie != 0 && MMU._if != 0)
+            if (Z80._r.ime && MMU._ie != 0 && MMU._if != 0)
             {
-                Z80._halt = 0; Z80._r.ime = 0;
+                Z80._halt = 0; Z80._r.ime = false;
 
                 if (((MMU._ie & 1) != 0) && ((MMU._if & 1) != 0))
                 {
@@ -82,7 +82,9 @@ namespace csGB
                 {
                     Z80._r.r = (Z80._r.r + 1) & 127;
                     Z80._map[MMU.rb(Z80._r.pc++)]();
-                    Z80._r.pc &= 65535;
+
+                    // wrap PC to 16 bits
+                    //Z80._r.pc &= 0xFF; // handled in PC setter
                 }
             }
             Z80._clock.m += Z80._r.m; Z80._clock.t += (Z80._r.m * 4);
@@ -114,18 +116,20 @@ namespace csGB
                 {
                     //  Z80._r.r = (Z80._r.r+1) & 127;
                     Z80._map[MMU.rb(Z80._r.pc++)]();
-                    Z80._r.pc &= 65535;
+                    // wrap PC to 16 bits - now handled in PC setter
+                    //Z80._r.pc &= 65535;
                 }
-                if (Z80._r.ime != 0 && MMU._ie != 0 && MMU._if != 0)
+
+                if (Z80._r.ime && MMU._ie != 0 && MMU._if != 0)
                 {
-                    Z80._halt = 0; Z80._r.ime = 0;
+                    Z80._halt = 0; Z80._r.ime = false;
                     var ifired = MMU._ie & MMU._if;
                     if ((ifired & 1) != 0) { MMU._if &= 0xFE; Z80._ops.RST40(); }
                     else if ((ifired & 2) != 0) { MMU._if &= 0xFD; Z80._ops.RST48(); }
                     else if ((ifired & 4) != 0) { MMU._if &= 0xFB; Z80._ops.RST50(); }
                     else if ((ifired & 8) != 0) { MMU._if &= 0xF7; Z80._ops.RST58(); }
                     else if ((ifired & 16) != 0) { MMU._if &= 0xEF; Z80._ops.RST60(); }
-                    else { Z80._r.ime = 1; }
+                    else { Z80._r.ime = true; }
                 }
                 //jsGB.dbgtrace();
                 Z80._clock.m += Z80._r.m;

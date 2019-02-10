@@ -32,7 +32,7 @@ namespace csGB
             Z80._r.m = 0;
             Z80._halt = 0; Z80._stop = 0;
             Z80._clock.m = 0;
-            Z80._r.ime = 1;
+            Z80._r.ime = false;
             LOG.@out("cpu", "Reset.");
         }
 
@@ -40,7 +40,7 @@ namespace csGB
         {
             Z80._r.r = (Z80._r.r + 1) & 127;
             Z80._map[MMU.rb(Z80._r.pc++)]();
-            Z80._r.pc &= 65535;
+            //Z80._r.pc &= 65535; // handled in PC setter
             Z80._clock.m += Z80._r.m;
         }
     }
