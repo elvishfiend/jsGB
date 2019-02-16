@@ -50,8 +50,21 @@ namespace csGB
         public static int[] _wram = new int[1024];
         public static int[] _zram = new int[1024];
 
+        /// <summary>
+        /// Is the cpu still in BIOS mode? Switches out the first time the PC hits 0x100.
+        /// </summary>
         public static bool _inbios = true;
+
+        // Interrupt Enabled
+
+        /// <summary>
+        /// IE - Interrupt Enabled Register (addr: 0xFFFF) See page 60 for details.
+        /// </summary>
         public static int _ie = 0;
+
+        /// <summary>
+        /// IF - Interrupt Flag Register (addr: 0xFF0F). See page 39 for details.
+        /// </summary>
         public static int _if = 0;
 
         public static void reset()

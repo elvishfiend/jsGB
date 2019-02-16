@@ -64,22 +64,32 @@ namespace csGB
             
         }
 
+        /// <summary>
+        /// this is what causes the whole thing to run.
+        /// </summary>
         public static void step()
         {
+            // interrupt master flag enabled 
+            // and MMU interrupt enabled && MM interrupt flag
             if (Z80._r.ime && MMU._ie != 0 && MMU._if != 0)
             {
-                Z80._halt = 0; Z80._r.ime = false;
+                // don't halt, disable master interrupt flag
+                Z80._halt = false; Z80._r.ime = false;
 
+                // if interrupt enable bit 1 set and interrupt flag 1 set
                 if (((MMU._ie & 1) != 0) && ((MMU._if & 1) != 0))
                 {
+                    // clear interrupt flag 1, trigger reset to 0x40
                     MMU._if &= 0xFE; Z80._ops.RST40();
                 }
             }
             else
             {
-                if (Z80._halt == 1) { Z80._r.m = 1; }
+                // halted - do nothing
+                if (Z80._halt) { Z80._r.m = 1; }
                 else
                 {
+
                     Z80._r.r = (Z80._r.r + 1) & 127;
                     Z80._map[MMU.rb(Z80._r.pc++)]();
 
@@ -89,7 +99,7 @@ namespace csGB
             }
             Z80._clock.m += Z80._r.m; Z80._clock.t += (Z80._r.m * 4);
             GPU.checkline();
-            if (Z80._stop != 0)
+            if (Z80._stop)
             {
                 pause();
             }
@@ -98,7 +108,7 @@ namespace csGB
 
         public static void run()
         {
-            Z80._stop = 0;
+            Z80._stop = false;
             timer.Start();// (jsGB.frame, 1);
             //document.getElementById('op_run').innerHTML = 'Pause';
             //document.getElementById('op_run').onclick = jsGB.pause;
@@ -106,30 +116,40 @@ namespace csGB
 
         public static void frame()
         {
+            // a frame takes 17556 clock cycles to render. we're stuck here until it's complete.
             var fclock = Z80._clock.m + 17556;
             //var brk = document.getElementById('breakpoint').value;
             //var t0 = new Date();
             do
             {
-                if (Z80._halt != 0) Z80._r.m = 1;
+                // if halted, do nothing and increment m
+                if (Z80._halt) Z80._r.m = 1;
                 else
                 {
+                    
                     //  Z80._r.r = (Z80._r.r+1) & 127;
+                    // increment and execute PC
                     Z80._map[MMU.rb(Z80._r.pc++)]();
                     // wrap PC to 16 bits - now handled in PC setter
                     //Z80._r.pc &= 65535;
                 }
 
+                // if interrupt master enabled and any interrupts enabled and any interrupts triggered
                 if (Z80._r.ime && MMU._ie != 0 && MMU._if != 0)
                 {
-                    Z80._halt = 0; Z80._r.ime = false;
+                    // disable interrupts
+                    Z80._halt = false; Z80._r.ime = false;
+
+                    // get fired interrupts that are enabled
                     var ifired = MMU._ie & MMU._if;
-                    if ((ifired & 1) != 0) { MMU._if &= 0xFE; Z80._ops.RST40(); }
-                    else if ((ifired & 2) != 0) { MMU._if &= 0xFD; Z80._ops.RST48(); }
-                    else if ((ifired & 4) != 0) { MMU._if &= 0xFB; Z80._ops.RST50(); }
-                    else if ((ifired & 8) != 0) { MMU._if &= 0xF7; Z80._ops.RST58(); }
-                    else if ((ifired & 16) != 0) { MMU._if &= 0xEF; Z80._ops.RST60(); }
-                    else { Z80._r.ime = true; }
+
+                    // interrupts get triggered according to priority (see page 40)
+                    if ((ifired & (1 << 0)) != 0) { MMU._if &= 0xFE; Z80._ops.RST40(); } // V-Blank
+                    else if ((ifired & (1 << 1)) != 0) { MMU._if &= 0xFD; Z80._ops.RST48(); } // LCDC (see STAT)
+                    else if ((ifired & (1 << 2)) != 0) { MMU._if &= 0xFB; Z80._ops.RST50(); } // Timer Overflow
+                    else if ((ifired & (1 << 3)) != 0) { MMU._if &= 0xF7; Z80._ops.RST58(); } // Serial I/O Complete
+                    else if ((ifired & (1 << 4)) != 0) { MMU._if &= 0xEF; Z80._ops.RST60(); } // P10-P13 transition H => L
+                    else { Z80._r.ime = true; } // otherwise, re-enable IME
                 }
                 //jsGB.dbgtrace();
                 Z80._clock.m += Z80._r.m;
@@ -148,7 +168,7 @@ namespace csGB
         public static void pause()
         {
             timer.Stop();
-            Z80._stop = 1;
+            Z80._stop = true;
             //jsGB.dbgupdate();
 
             //document.getElementById('op_run').innerHTML = 'Run';

@@ -22,15 +22,15 @@ namespace csGB
         }
         public static clock _clock = new clock();
 
-        public static int _halt = 0;
-        public static int _stop = 0;
+        public static bool _halt = false;
+        public static bool _stop = false;
 
         public static void reset()
         {
             Z80._r.a = 0; Z80._r.b = 0; Z80._r.c = 0; Z80._r.d = 0; Z80._r.e = 0; Z80._r.h = 0; Z80._r.l = 0; Z80._r.f = 0;
             Z80._r.sp = 0; Z80._r.pc = 0; Z80._r.i = 0; Z80._r.r = 0;
             Z80._r.m = 0;
-            Z80._halt = 0; Z80._stop = 0;
+            Z80._halt = false; Z80._stop = false;
             Z80._clock.m = 0;
             Z80._r.ime = false;
             LOG.@out("cpu", "Reset.");
@@ -40,7 +40,6 @@ namespace csGB
         {
             Z80._r.r = (Z80._r.r + 1) & 127;
             Z80._map[MMU.rb(Z80._r.pc++)]();
-            //Z80._r.pc &= 65535; // handled in PC setter
             Z80._clock.m += Z80._r.m;
         }
     }

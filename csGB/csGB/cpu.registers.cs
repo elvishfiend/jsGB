@@ -98,7 +98,7 @@ namespace csGB
             public int sp
             {
                 get => _sp;
-                set => _sp = value & 0xFF;
+                set => _sp = value & 0xFFFF;
             }
             private int _sp;
 

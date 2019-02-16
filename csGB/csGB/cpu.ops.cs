@@ -593,7 +593,7 @@ namespace csGB
             public static void RST60() { Z80._ops.rsv(); Z80._r.sp -= 2; MMU.ww(Z80._r.sp, Z80._r.pc); Z80._r.pc = 0x60; Z80._r.m = 3; }
 
             public static void NOP() { Z80._r.m = 1; }
-            public static void HALT() { Z80._halt = 1; Z80._r.m = 1; }
+            public static void HALT() { Z80._halt = true; Z80._r.m = 1; }
 
             public static void DI() { Z80._r.ime = false; Z80._r.m = 1; }
             public static void EI() { Z80._r.ime = true; Z80._r.m = 1; }
@@ -628,7 +628,7 @@ namespace csGB
                 /*Undefined map entry*/
                 var opc = Z80._r.pc - 1;
                 LOG.@out("cpu", "Unimplemented instruction at $" + opc.ToString("XX") + ", stopping.");
-                Z80._stop = 1;
+                Z80._stop = true;
             }
         }
 
