@@ -10,14 +10,15 @@ namespace csGB
 {
     class GPU
     {
-        public static int[] _vram = new int[8192];
-        public static int[] _oam = new int[160];
-        public static int[] _reg = new int[10];
-        public static int[,,] _tilemap = new int[512,8,8];
-        public static ObjData[] _objdata = new ObjData[40];
-        public static ObjData[] _objdatasorted = new ObjData[40];
+        public static int[] _vram { get; set; } = new int[8192];
+        public static int[] _oam { get; set; } = new int[160];
+        public static int[] _reg { get; set; } = new int[10];
+        public static int[,,] _tilemap { get; set; } = new int[512, 8, 8];
 
-        public static int[,,] _canvas = new int[160, 144, 4];
+        public static ObjData[] _objdata { get; set; } = new ObjData[40];
+        public static ObjData[] _objdatasorted { get; set; } = _objdata.ToArray(); // we want to initialise this with the same instances of objects as in _objdata
+
+        public static int[,] _canvas { get; set; } = new int[160, 144];
 
         public static class _palette
         {
@@ -28,24 +29,24 @@ namespace csGB
 
         public static class _scrn
         {
-            public static int width = 160;
-            public static int height = 144;
-            public static int[] data = new int[160 * 144 * 4];
+            public static int width { get; set; } = 160;
+            public static int height { get; set; } = 144;
+            public static int[] data { get; set; } = new int[width * height];
         }
 
         public class ObjData
         {
-            public int y = -16;
-            public int x = -8;
-            public int tile = 0;
-            public int palette = 0;
-            public int yflip = 0;
-            public int xflip = 0;
-            public int prio = 0;
-            public int num = 0;
+            public int y { get; set; } = -16; // starts hidden
+            public int x { get; set; } = -8;
+            public int tile { get; set; } = 0;
+            public int palette { get; set; } = 0;
+            public int yflip { get; set; } = 0;
+            public int xflip { get; set; } = 0;
+            public int prio { get; set; } = 0;
+            public int num { get; set; } = 0;
         }
 
-        public static int[] _scanrow = new int[160];
+        public static int[] _scanrow { get; set; } = new int[160];
 
         public static int _curline = 0;
         public static int _curscan = 0;
@@ -84,7 +85,7 @@ namespace csGB
 
             LOG.@out("GPU", "Initialising screen.");
             
-            GPU._canvas = new int[160, 144, 4];
+            GPU._canvas = new int[160, 144];
             for (int i = 0; i < GPU._scrn.data.Length; i++)
                 GPU._scrn.data[i] = 255;
 
@@ -132,6 +133,8 @@ namespace csGB
 
         public static void checkline()
         {
+            // GPU State Machine
+
             GPU._modeclocks += Z80._r.m;
             switch (GPU._linemode)
             {
@@ -151,7 +154,7 @@ namespace csGB
                             GPU._linemode = 2;
                         }
                         GPU._curline++;
-                        GPU._curscan += 640;
+                        GPU._curscan += 160; // we're only using a single int, not 4 ints, to represent each pixel
                         GPU._modeclocks = 0;
                     }
                     break;
@@ -182,117 +185,136 @@ namespace csGB
 
                 // In VRAM-read mode
                 case 3:
-                    // Render scanline at end of allotted time
-                    if (GPU._modeclocks >= 43)
+                    RenderLine();
+                    break;
+            }
+        }
+
+        public static void RenderLine()
+        {
+            // Render scanline at end of allotted time
+            if (GPU._modeclocks >= 43)
+            {
+                GPU._modeclocks = 0;
+                GPU._linemode = 0;
+                if (GPU._lcdon != 0)
+                {
+                    RenderTiles();
+                    RenderSprites();
+                }
+                else
+                {
+                    // else - clear line in buffer?
+                }
+            }
+        }
+
+        public static void RenderTiles()
+        {
+            if (GPU._bgon != 0)
+            {
+                var linebase = GPU._curscan;
+                var mapbase = GPU._bgmapbase + ((((GPU._curline + GPU._yscrl) & 255) >> 3) << 5);
+                var y = (GPU._curline + GPU._yscrl) & 7;
+                var x = GPU._xscrl & 7;
+                var t = (GPU._xscrl >> 3) & 31;
+                var w = 160;
+
+                var tilerow = new { x = 0, y = 0 };
+
+                if (GPU._bgtilebase != 0)
+                {
+                    var tile = GPU._vram[mapbase + t];
+                    if (tile < 128) tile = 256 + tile;
+                    tilerow = new { x = tile, y };
+                    do
                     {
-                        GPU._modeclocks = 0;
-                        GPU._linemode = 0;
-                        if (GPU._lcdon != 0)
+                        GPU._scanrow[160 - x] = GPU._tilemap[tilerow.x, tilerow.y, x];
+                        GPU._scrn.data[linebase + 3] = GPU._palette.bg[GPU._tilemap[tilerow.x, tilerow.y, x]];
+                        x++;
+                        if (x == 8) { t = (t + 1) & 31; x = 0; tile = GPU._vram[mapbase + t]; if (tile < 128) tile = 256 + tile; tilerow = new { x = tile, y }; }
+                        linebase += 4;
+                    } while (--w > 0);
+                }
+                else
+                {
+                    tilerow = new { x = GPU._vram[mapbase + t], y };
+                    do
+                    {
+                        GPU._scanrow[160 - x] = GPU._tilemap[tilerow.x, tilerow.y, x];
+                        GPU._scrn.data[linebase + 3] = GPU._palette.bg[GPU._tilemap[tilerow.x, tilerow.y, x]];
+                        x++;
+                        if (x == 8) { t = (t + 1) & 31; x = 0; tilerow = new { x = GPU._vram[mapbase + t], y }; }
+                        linebase += 4;
+                    } while (--w > 0);
+                }
+            }
+        }
+
+        public static void RenderSprites()
+        {
+            if (GPU._objon != 0)
+            {
+                var cnt = 0;
+                if (GPU._objsize != 0)
+                {
+                    for (var i = 0; i < 40; i++)
+                    {
+                    }
+                }
+                else
+                {
+                    var tilerow = new { x = 0, y = 0 };
+                    ObjData obj;
+                    int[] pal;
+                    int x;
+                    var linebase = GPU._curscan;
+                    for (var i = 0; i < 40; i++)
+                    {
+                        obj = GPU._objdatasorted[i];
+                        if (obj.y <= GPU._curline && (obj.y + 8) > GPU._curline)
                         {
-                            if (GPU._bgon != 0)
-                            {
-                                var linebase = GPU._curscan;
-                                var mapbase = GPU._bgmapbase + ((((GPU._curline + GPU._yscrl) & 255) >> 3) << 5);
-                                var y = (GPU._curline + GPU._yscrl) & 7;
-                                var x = GPU._xscrl & 7;
-                                var t = (GPU._xscrl >> 3) & 31;
-                                var w = 160;
+                            if (obj.yflip != 0)
+                                tilerow = new { x = obj.tile, y = 7 - (GPU._curline - obj.y) };// GPU._tilemap[obj.tile][7 - (GPU._curline - obj.y)];
+                            else
+                                tilerow = new { x = obj.tile, y = GPU._curline - obj.y };//GPU._tilemap[obj.tile][GPU._curline - obj.y];
 
-                                var tilerow = new { x = 0, y = 0 };
+                            if (obj.palette != 0) pal = GPU._palette.obj1;
+                            else pal = GPU._palette.obj0;
 
-                                if (GPU._bgtilebase != 0)
-                                {
-                                    var tile = GPU._vram[mapbase + t];
-                                    if (tile < 128) tile = 256 + tile;
-                                    tilerow = new { x = tile, y };
-                                    do
-                                    {
-                                        GPU._scanrow[160 - x] = GPU._tilemap[tilerow.x, tilerow.y, x];
-                                        GPU._scrn.data[linebase + 3] = GPU._palette.bg[GPU._tilemap[tilerow.x, tilerow.y, x]];
-                                        x++;
-                                        if (x == 8) { t = (t + 1) & 31; x = 0; tile = GPU._vram[mapbase + t]; if (tile < 128) tile = 256 + tile; tilerow = new { x = tile, y }; }
-                                        linebase += 4;
-                                    } while (--w > 0);
-                                }
-                                else
-                                {
-                                    tilerow = new { x = GPU._vram[mapbase + t], y };
-                                    do
-                                    {
-                                        GPU._scanrow[160 - x] = GPU._tilemap[tilerow.x, tilerow.y, x];
-                                        GPU._scrn.data[linebase + 3] = GPU._palette.bg[GPU._tilemap[tilerow.x, tilerow.y, x]];
-                                        x++;
-                                        if (x == 8) { t = (t + 1) & 31; x = 0; tilerow = new { x = GPU._vram[mapbase + t], y }; }
-                                        linebase += 4;
-                                    } while (--w > 0);
-                                }
-                            }
-                            if (GPU._objon != 0)
+                            linebase = (GPU._curline * 160 + obj.x) * 4;
+                            if (obj.xflip != 0)
                             {
-                                var cnt = 0;
-                                if (GPU._objsize != 0)
+                                for (x = 0; x < 8; x++)
                                 {
-                                    for (var i = 0; i < 40; i++)
+                                    if (obj.x + x >= 0 && obj.x + x < 160)
                                     {
-                                    }
-                                }
-                                else
-                                {
-                                    var tilerow = new { x = 0, y = 0 };
-                                    ObjData obj;
-                                    int[] pal;
-                                    int x;
-                                    var linebase = GPU._curscan;
-                                    for (var i = 0; i < 40; i++)
-                                    {
-                                        obj = GPU._objdatasorted[i];
-                                        if (obj.y <= GPU._curline && (obj.y + 8) > GPU._curline)
+                                        if ((GPU._tilemap[tilerow.x, tilerow.y, 7 - x] != 0) && (obj.prio != 0 || GPU._scanrow[x] == 0)) // todo check this logic
                                         {
-                                            if (obj.yflip != 0)
-                                                tilerow = new { x = obj.tile, y = 7 - (GPU._curline - obj.y) };// GPU._tilemap[obj.tile][7 - (GPU._curline - obj.y)];
-                                            else
-                                                tilerow = new { x = obj.tile, y = GPU._curline - obj.y };//GPU._tilemap[obj.tile][GPU._curline - obj.y];
-
-                                            if (obj.palette != 0) pal = GPU._palette.obj1;
-                                            else pal = GPU._palette.obj0;
-
-                                            linebase = (GPU._curline * 160 + obj.x) * 4;
-                                            if (obj.xflip != 0)
-                                            {
-                                                for (x = 0; x < 8; x++)
-                                                {
-                                                    if (obj.x + x >= 0 && obj.x + x < 160)
-                                                    {
-                                                        if ((GPU._tilemap[tilerow.x, tilerow.y, 7 - x] != 0) && (obj.prio != 0 || GPU._scanrow[x] == 0)) // todo check this logic
-                                                        {
-                                                            GPU._scrn.data[linebase + 3] = pal[GPU._tilemap[tilerow.x, tilerow.y,7 - x]];
-                                                        }
-                                                    }
-                                                    linebase += 4;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                for (x = 0; x < 8; x++)
-                                                {
-                                                    if (obj.x + x >= 0 && obj.x + x < 160)
-                                                    {
-                                                        if (GPU._tilemap[tilerow.x, tilerow.y, x] != 0 && (obj.prio != 0 || GPU._scanrow[x] == 0))
-                                                        {
-                                                            GPU._scrn.data[linebase + 3] = pal[GPU._tilemap[tilerow.x, tilerow.y, x]];
-                                                        }
-                                                    }
-                                                    linebase += 4;
-                                                }
-                                            }
-                                            cnt++; if (cnt > 10) break;
+                                            GPU._scrn.data[linebase + 3] = pal[GPU._tilemap[tilerow.x, tilerow.y, 7 - x]];
                                         }
                                     }
+                                    linebase += 4;
                                 }
                             }
+                            else
+                            {
+                                for (x = 0; x < 8; x++)
+                                {
+                                    if (obj.x + x >= 0 && obj.x + x < 160)
+                                    {
+                                        if (GPU._tilemap[tilerow.x, tilerow.y, x] != 0 && (obj.prio != 0 || GPU._scanrow[x] == 0))
+                                        {
+                                            GPU._scrn.data[linebase + 3] = pal[GPU._tilemap[tilerow.x, tilerow.y, x]];
+                                        }
+                                    }
+                                    linebase += 4;
+                                }
+                            }
+                            cnt++; if (cnt > 10) break;
                         }
                     }
-                    break;
+                }
             }
         }
 
@@ -333,7 +355,6 @@ namespace csGB
                 }
             }
 
-            GPU._objdatasorted = GPU._objdata;
             Array.Sort(GPU._objdatasorted, (a, b) => {
                 if (a.x > b.x) return -1;
                 if (a.num > b.num) return -1;
@@ -458,19 +479,6 @@ namespace csGB
 
         public static void CopyScrnToCanvas()
         {
-            int scrnPos = 0;
-
-            for (int i = 0; i < 160; i++)
-            {
-                for (int j = 0; j < 144; j++)
-                {
-                    for (int k = 0; k < 4; k++)
-                    {
-                        _canvas[i, j, k] = _scrn.data[scrnPos++];
-                    }
-                }
-            }
-
             BitmapData buflock = Display.buf.LockBits(new Rectangle(Point.Empty, Display.buf.Size), ImageLockMode.ReadWrite, PixelFormat.Format8bppIndexed);
 
             unsafe
@@ -478,17 +486,12 @@ namespace csGB
                 Byte* bufdata = (Byte*)buflock.Scan0;
                 Byte* pos = bufdata;
 
-                for (int i = 0; i < 160; i++)
+                for (int i = 0; i < _scrn.width; i++)
                 {
-                    for (int j = 0; j < 144; j++)
-                    {
-                        var sum = 0;
-                        for (int k = 0; k < 4; k++)
-                        {
-                            sum += _canvas[i, j, k];
-                        }
-
-                        *pos = (byte)(sum / 4);
+                    for (int j = 0; j < _scrn.height; j++)
+                    { 
+                        *pos = (byte)(_canvas[i,j]);
+                        pos++;
                     }
                 }
             }
