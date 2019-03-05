@@ -46,28 +46,68 @@ namespace csGB
             public int num { get; set; } = 0;
         }
 
-        public static int[] _scanrow { get; set; } = new int[160];
+        public static int[] _scanrow { get; set; } = new int[160]; // TODO: Convert this to an ArraySegment
 
-        public static int _curline = 0;
-        public static int _curscan = 0;
-        public static int _linemode = 0;
-        public static int _modeclocks = 0;
+        /// <summary>
+        /// Register LY - 0xFF44
+        /// LCDC Y-Coordinate.
+        /// The current scrolline of the LCD being drawn. Values can be between 0 and 153.
+        /// Values between 144 and 153 indicate V-Blank.
+        /// </summary>
+        public static int _curline { get; set; } = 0;
 
-        public static int _yscrl = 0;
-        public static int _xscrl = 0;
-        public static int _raster = 0;
-        public static int _ints = 0;
+
+        public static int _curscan { get; set; } = 0;
+        public static int _linemode { get; set; } = 0;
+        public static int _modeclocks { get; set; } = 0;
+
+        /// <summary>
+        /// Register SCY - 0xFF42.
+        /// </summary>
+        public static int _yscrl { get; set; } = 0;
+        /// <summary>
+        /// Register SCX - 0xFF43.
+        /// </summary>
+        public static int _xscrl { get; set; } = 0;
+        /// <summary>
+        /// Register LYC - 0xFF45.
+        /// LY Compare - if LYC = LY, set flag in STAT
+        /// </summary>
+        public static int _raster { get; set; } = 0;
+        public static int _ints { get; set; } = 0;
   
-        public static int _lcdon = 0;
-        public static int _bgon = 0;
-        public static int _objon = 0;
-        public static int _winon = 0;
+        /// <summary>
+        /// Controls whether the LCD is enabled or not. LCDC Bit 7.
+        /// Should only be changed during VBlank (TODO)
+        /// When LCD is disabled, screen should be white (blank).
+        /// </summary>
+        public static int _lcdon { get; set; } = 0;
 
-        public static int _objsize = 0;
+        /// <summary>
+        /// Controls whether the BG should be drawn or not. LCDC Bit 0.
+        /// </summary>
+        public static int _bgon { get; set; } = 0;
 
-        public static int _bgtilebase = 0x0000;
-        public static int _bgmapbase = 0x1800;
-        public static int _wintilebase = 0x1800;
+        /// <summary>
+        /// Controls whether the sprites should be drawn or not. LCDC Bit 1.
+        /// Can be toggled mid-frame.
+        /// </summary>
+        public static int _objon { get; set; } = 0;
+        
+        /// <summary>
+        /// Controls whether the Window should display or not. LCDC Bit 5.
+        /// </summary>
+        public static int _winon { get; set; } = 0;
+
+        /// <summary>
+        /// Controls whether the sprites are one tile high, or 2 tiles high. LCDC Bit 2.
+        /// Can be toggled mid-frame.
+        /// </summary>
+        public static int _objsize { get; set; } = 0;
+
+        public static int _bgtilebase { get; set; } = 0x0000;
+        public static int _bgmapbase { get; set; } = 0x1800;
+        public static int _wintilebase { get; set; } = 0x1800;
 
         public static void reset()
         {
@@ -106,7 +146,7 @@ namespace csGB
             GPU._winon = 0;
 
             GPU._objsize = 0;
-                GPU._scanrow = new int[160];
+            GPU._scanrow = new int[160];
 
             for (int i = 0; i < 40; i++)
             {
@@ -204,6 +244,7 @@ namespace csGB
                 }
                 else
                 {
+                    // todo
                     // else - clear line in buffer?
                 }
             }
@@ -213,6 +254,7 @@ namespace csGB
         {
             if (GPU._bgon != 0)
             {
+
                 var linebase = GPU._curscan;
                 var mapbase = GPU._bgmapbase + ((((GPU._curline + GPU._yscrl) & 255) >> 3) << 5);
                 var y = (GPU._curline + GPU._yscrl) & 7;
@@ -282,7 +324,7 @@ namespace csGB
                             if (obj.palette != 0) pal = GPU._palette.obj1;
                             else pal = GPU._palette.obj0;
 
-                            linebase = (GPU._curline * 160 + obj.x) * 4;
+                            linebase = (GPU._curline * 160 + obj.x);
                             if (obj.xflip != 0)
                             {
                                 for (x = 0; x < 8; x++)
@@ -294,7 +336,7 @@ namespace csGB
                                             GPU._scrn.data[linebase + 3] = pal[GPU._tilemap[tilerow.x, tilerow.y, 7 - x]];
                                         }
                                     }
-                                    linebase += 4;
+                                    linebase += 1;
                                 }
                             }
                             else
@@ -332,6 +374,11 @@ namespace csGB
             }
         }
 
+        /// <summary>
+        /// Update the specified sprite value.
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <param name="val"></param>
         public static void updateoam(int addr, int val)
         {
             addr -= 0xFE00;
@@ -367,7 +414,7 @@ namespace csGB
             var gaddr = addr - 0xFF40;
             switch (gaddr)
             {
-                case 0:
+                case 0: // 0xFF40 http://gbdev.gg8.se/wiki/articles/LCDC
                     return (GPU._lcdon != 0 ? 0x80 : 0) |
                            ((GPU._bgtilebase == 0x0000) ? 0x10 : 0) |
                            ((GPU._bgmapbase == 0x1C00) ? 0x08 : 0) |
