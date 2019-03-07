@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csGB", "csGB\csGB.csproj", "{F475C58A-2928-4A15-8A26-9356D8C08FBA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPUTest", "GPUTest\GPUTest.csproj", "{EE68EC13-6664-489C-AB80-DD9028316515}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +17,15 @@ Global
 		{F475C58A-2928-4A15-8A26-9356D8C08FBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F475C58A-2928-4A15-8A26-9356D8C08FBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F475C58A-2928-4A15-8A26-9356D8C08FBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE68EC13-6664-489C-AB80-DD9028316515}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE68EC13-6664-489C-AB80-DD9028316515}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE68EC13-6664-489C-AB80-DD9028316515}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE68EC13-6664-489C-AB80-DD9028316515}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D3E1EA83-B10C-4370-8499-466935A3C37E}
 	EndGlobalSection
 EndGlobal

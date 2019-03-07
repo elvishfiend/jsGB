@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace csGB
 {
-    class GPU
+    public class GPU
     {
         public static int[] _vram { get; set; } = new int[8192];
         public static int[] _oam { get; set; } = new int[160];
@@ -18,7 +18,7 @@ namespace csGB
         public static ObjData[] _objdata { get; set; } = new ObjData[40];
         public static ObjData[] _objdatasorted { get; set; } = _objdata.ToArray(); // we want to initialise this with the same instances of objects as in _objdata
 
-        public static int[,] _canvas { get; set; } = new int[160, 144];
+        public static int[,] _canvas { get; set; } = new int[_scrn.width, _scrn.height];
 
         public static class _palette
         {
@@ -254,7 +254,6 @@ namespace csGB
         {
             if (GPU._bgon != 0)
             {
-
                 var linebase = GPU._curscan;
                 var mapbase = GPU._bgmapbase + ((((GPU._curline + GPU._yscrl) & 255) >> 3) << 5);
                 var y = (GPU._curline + GPU._yscrl) & 7;
@@ -498,7 +497,7 @@ namespace csGB
                 case 8:
                     for (var i = 0; i < 4; i++)
                     {
-                        switch ((val >> (i * 2)) & 3)
+                        switch ((val >> (i * 2)) & 0b11)
                         {
                             case 0: GPU._palette.obj0[i] = 255; break;
                             case 1: GPU._palette.obj0[i] = 192; break;
@@ -512,7 +511,7 @@ namespace csGB
                 case 9:
                     for (var i = 0; i < 4; i++)
                     {
-                        switch ((val >> (i * 2)) & 3)
+                        switch ((val >> (i * 2)) & 0b11)
                         {
                             case 0: GPU._palette.obj1[i] = 255; break;
                             case 1: GPU._palette.obj1[i] = 192; break;

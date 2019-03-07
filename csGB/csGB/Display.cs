@@ -13,7 +13,7 @@ namespace csGB
 {
     public partial class Display : Form
     {
-        public static Bitmap buf;
+        public static Bitmap buf = new Bitmap(160,144);
 
         public static System.Timers.Timer timer = new System.Timers.Timer()
         {
