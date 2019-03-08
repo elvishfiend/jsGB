@@ -56,7 +56,9 @@ namespace csGB
         /// </summary>
         public static int _curline { get; set; } = 0;
 
-
+        /// <summary>
+        /// The current pixel being drawn to
+        /// </summary>
         public static int _curscan { get; set; } = 0;
         public static int _linemode { get; set; } = 0;
         public static int _modeclocks { get; set; } = 0;
@@ -97,7 +99,7 @@ namespace csGB
         /// <summary>
         /// Controls whether the Window should display or not. LCDC Bit 5.
         /// </summary>
-        public static int _winon { get; set; } = 0;
+        public static int _winon { get; set; } = 0; // TODO: Doesn't seem to be used anywhere.
 
         /// <summary>
         /// Controls whether the sprites are one tile high, or 2 tiles high. LCDC Bit 2.
@@ -105,8 +107,20 @@ namespace csGB
         /// </summary>
         public static int _objsize { get; set; } = 0;
 
+        /// <summary>
+        /// Gets the Tile Data base address for the Background tiles, offset by 0x8000. LCDC Bit 4. 
+        /// </summary>
         public static int _bgtilebase { get; set; } = 0x0000;
-        public static int _bgmapbase { get; set; } = 0x1800;
+
+        /// <summary>
+        /// BG Tilemap Base Address. Offset by 0x8000. Range $9800-$9BFF or $9C00-$9FFF. LCDC Bit 3.
+        /// </summary>
+        public static int _bgmapbase { get; set; } = 0x1800; // offset by 0x8000
+
+        /// <summary>
+        /// Window Tilemap Base Address. Offset by 0x8000. Range $9800-$9BFF or $9C00-$9FFF. LCDC Bit (3?).
+        /// TODO: Doesn't seem to be used.
+        /// </summary>
         public static int _wintilebase { get; set; } = 0x1800;
 
         public static void reset()
@@ -166,7 +180,7 @@ namespace csGB
             // Set to values expected by BIOS, to start
             GPU._bgtilebase = 0x0000;
             GPU._bgmapbase = 0x1800;
-            GPU._wintilebase = 0x1800;
+            GPU._wintilebase = 0x1800; // TODO: doesn't seem to be used anywhere?
 
             LOG.@out("GPU", "Reset.");
         }
@@ -254,15 +268,22 @@ namespace csGB
         {
             if (GPU._bgon != 0)
             {
-                var linebase = GPU._curscan;
-                var mapbase = GPU._bgmapbase + ((((GPU._curline + GPU._yscrl) & 255) >> 3) << 5);
+                var linebase = GPU._curscan; // current pixel
+
+                // which line of tiles to use in the map
+                var mapbase = GPU._bgmapbase + ((((GPU._curline + GPU._yscrl) & 255) >> 3) << 5); // get the base BGmap Address (0x1800?)
+
+                // which line of pixels to use in the tiles
                 var y = (GPU._curline + GPU._yscrl) & 7;
+
+                // where in the tileline to start
                 var x = GPU._xscrl & 7;
-                var t = (GPU._xscrl >> 3) & 31;
-                var w = 160;
 
-                var tilerow = new { x = 0, y = 0 };
+                var t = (GPU._xscrl >> 3) & 31; // get the tile index of the starting tile for the row
+                var w = 160; // screen width in pixels
 
+
+                // check which bank we're using - they have different tile addressing schemes.
                 if (GPU._bgtilebase != 0)
                 {
                     var tile = GPU._vram[mapbase + t];
