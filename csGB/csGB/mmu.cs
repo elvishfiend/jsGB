@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using csGB.GPUs;
 
 namespace csGB
 {
@@ -46,9 +47,9 @@ namespace csGB
         public static int _romoffs = 0x4000;
         public static int _ramoffs = 0;
 
-        public static int[] _eram = new int[1024];
-        public static int[] _wram = new int[1024];
-        public static int[] _zram = new int[1024];
+        public static int[] _eram = new int[32768];
+        public static int[] _wram = new int[8192];
+        public static int[] _zram = new int[127];
 
         public static bool _inbios = true;
         public static int _ie = 0;
@@ -96,6 +97,8 @@ namespace csGB
                             LOG.@out("MMU", "Leaving BIOS.");
                             return rb(addr);
                         }
+
+                        return MMU._rom[addr];
                     }
                     else
                     {

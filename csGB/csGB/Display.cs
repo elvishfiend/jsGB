@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using csGB.GPUs;
+using csGB;
 
 namespace csGB
 {
@@ -34,7 +36,7 @@ namespace csGB
 
             this.Paint += Display_Paint;
 
-            new Bitmap(160, 144, PixelFormat.Format8bppIndexed);
+            buf = new Bitmap(160, 144, PixelFormat.Format8bppIndexed);
 
             var pal = buf.Palette;
 
@@ -61,7 +63,6 @@ namespace csGB
             LOG.reset(); GPU.reset(); MMU.reset(); Z80.reset(); KEY.reset(); TIMER.reset();
             Z80._r.pc = 0x100; MMU._inbios = true; Z80._r.sp = 0xFFFE; Z80._r.h = 0x01; Z80._r.l = 0x4D;
             Z80._r.c = 0x13; Z80._r.e = 0xD8; Z80._r.a = 1;
-            
         }
 
         public static void step()
@@ -152,9 +153,28 @@ namespace csGB
             //XHR.connect('/log.php', {trace:jsGB.trace}, {success:function(x){}});
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void Step_Click(object sender, EventArgs e)
         {
             step();
+        }
+
+        private void LoadRom_Click(object sender, EventArgs e)
+        {
+            var openFile = new OpenFileDialog()
+            {
+                CheckFileExists = true,
+                CheckPathExists = true,
+                DefaultExt = "*.rom",
+            };
+
+            openFile.ShowDialog();
+
+            MMU.load(openFile.FileName);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

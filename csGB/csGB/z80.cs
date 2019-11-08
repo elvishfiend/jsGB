@@ -20,6 +20,7 @@ namespace csGB
 			public static int f = 0;
 			public static int sp = 0;
 			public static int pc = 0;
+
 			public static int i = 0;
 			public static int r = 0;
 			public static int m = 0;
@@ -162,7 +163,8 @@ namespace csGB
             public static void LDSPnn() { Z80._r.sp = MMU.rw(Z80._r.pc); Z80._r.pc += 2; Z80._r.m = 3; }
 
             public static void LDHLmm() { var i = MMU.rw(Z80._r.pc); Z80._r.pc += 2; Z80._r.l = MMU.rb(i); Z80._r.h = MMU.rb(i + 1); Z80._r.m = 5; }
-            public static void LDmmHL() { var i = MMU.rw(Z80._r.pc); Z80._r.pc += 2; MMU.ww(i, (Z80._r.h << 8) + Z80._r.l); Z80._r.m = 5; }
+            //public static void LDmmHL() { var i = MMU.rw(Z80._r.pc); Z80._r.pc += 2; MMU.ww(i, (Z80._r.h << 8) + Z80._r.l); Z80._r.m = 5; }
+            public static void LDmmSP() { var i = MMU.rw(Z80._r.pc); Z80._r.pc += 2; MMU.ww(i, (Z80._r.sp)); Z80._r.m = 5; }
 
             public static void LDHLIA() { MMU.wb((Z80._r.h << 8) + Z80._r.l, Z80._r.a); Z80._r.l = (Z80._r.l + 1) & 255; if (Z80._r.l == 0) Z80._r.h = (Z80._r.h + 1) & 255; Z80._r.m = 2; }
             public static void LDAHLI() { Z80._r.a = MMU.rb((Z80._r.h << 8) + Z80._r.l); Z80._r.l = (Z80._r.l + 1) & 255; if (Z80._r.l == 0) Z80._r.h = (Z80._r.h + 1) & 255; Z80._r.m = 2; }

@@ -5,12 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{F475C58A-2928-4A15-8A26-9356D8C08FBA}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>csGB</RootNamespace>
     <AssemblyName>csGB</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -29,6 +30,13 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>csGB.Program</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -43,16 +51,42 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArraySpan.cs" />
+    <Compile Include="Controllers\CartHelper.cs" />
+    <Compile Include="Controllers\ICartController.cs" />
+    <Compile Include="Controllers\MBC1.cs" />
+    <Compile Include="Controllers\RomOnly.cs" />
+    <Compile Include="Controllers\RomTypeAttribute.cs" />
     <Compile Include="Display.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Display.Designer.cs">
       <DependentUpon>Display.cs</DependentUpon>
     </Compile>
-    <Compile Include="gpu.cs" />
+    <Compile Include="GB.cs" />
+    <Compile Include="GfxTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GfxTest.Designer.cs">
+      <DependentUpon>GfxTest.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GPUs\BasicGpu.cs" />
+    <Compile Include="GPUs\fullGpu.cs" />
+    <Compile Include="GPUs\gpu.cs" />
+    <Compile Include="GPUs\IGPU.cs" />
+    <Compile Include="GPUs\ObjData.cs" />
+    <Compile Include="GPUs\Pallette.cs" />
+    <Compile Include="GPUs\Tile.cs" />
     <Compile Include="key.cs" />
     <Compile Include="log.cs" />
+    <Compile Include="LogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogForm.Designer.cs">
+      <DependentUpon>LogForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="mmu.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="timer.cs" />
     <Compile Include="z80.cs" />
@@ -61,11 +95,17 @@
     <EmbeddedResource Include="Display.resx">
       <DependentUpon>Display.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="LogForm.resx">
+      <DependentUpon>LogForm.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Roms\ttt.gb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
